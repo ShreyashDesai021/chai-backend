@@ -10,7 +10,38 @@ import connectDB from "./db/index.js";
 
 dotenv.config(); // Load environment variables from .env file 
 
-connectDB(); // Call the function to connect to the database
+connectDB() // Since it is a async func it returns a promise so we can use .then() and .catch() to handle the promise. We can also use async/await to handle the promise but we will use .then() and .catch() for now.
+.then(() => {
+    app.listen(process.env.PORT || 8000, () => {
+        console.log(`Server is running on port ${process.env.PORT || 8000}`);
+    })
+})
+.catch((err) => {
+    console.log("Error connecting to MongoDB:", err);
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
 First approach : All the code is in one file (index.js). 
