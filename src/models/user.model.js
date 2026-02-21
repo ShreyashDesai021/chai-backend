@@ -36,7 +36,7 @@ const userSchema = new Schema(
         type : String, // cloudinary url of the image
         required : true,
       },
-      coverimage : {
+      coverImage : {
         type : String, // cloudinary url of the image
         required : false
       },
@@ -63,7 +63,7 @@ userSchema.pre("save",async function (next) { // why is this function not an arr
 
     if(!this.isModified("password")) return next(); // this means that if the password field is not modified, then we don't need to hash the password again and we can simply proceed to the next middleware function or the route handler, this is useful when we are updating a user and we don't want to hash the password again if it is not modified
     this.password = await bcrypt.hash(this.password,10)
-    next();
+    // next();
 })
 
 userSchema.methods.isPasswordCorrect = async function(password){

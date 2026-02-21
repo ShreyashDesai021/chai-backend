@@ -3,7 +3,7 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
-import { uploadToCloudinary } from '../utils/cloudinary.js';
+import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 
 
@@ -31,7 +31,7 @@ const registerUser = asyncHandler(async (req,res) => {
         throw new ApiError(400,"All Fields are Required")
     }
 
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or : [{username}, {email}]
     })
 
@@ -41,15 +41,24 @@ const registerUser = asyncHandler(async (req,res) => {
 
     const avatarLocalPath = req.files?.avatar[0]?.path // this is the path of the uploaded avatar image on the server, we will use this path to upload the image to cloudinary and then delete it from our local server, this is a temporary storage location for the uploaded files before they are uploaded to cloudinary
 
-    const coverImageLocalPath = req.files?.coverImage[0]?.path // this is the path of the uploaded cover image on the server, we will use this path to upload the image to cloudinary and then delete it from our local server, this is a temporary storage location for the uploaded files before they are uploaded to cloudinary
+    //const coverImageLocalPath = req.files?.coverImage[0]?.path // this is the path of the uploaded cover image on the server, we will use this path to upload the image to cloudinary and then delete it from our local server, this is a temporary storage location for the uploaded files before they are uploaded to cloudinary
+
+    let coverImageLocalPath;
+
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
+    // in above whatsthe diff between both approaches ? the first appraoch gave error when coverImage field was empty , second didn't . why?
 
     if(!avatarLocalPath){
         throw new ApiError(400,"Avatar is required")
     }
 
-    const avatar = await uploadToCloudinary(avatarLocalPath)
+    console.log("Req.body:",req.body)
+    console.log("Req.files:",req.files)
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
 
-    const coverImage = await uploadToCloudinary(coverImageLocalPath)
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
     if(!avatar){
         throw new ApiError(500,"Error while uploading avatar")

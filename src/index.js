@@ -11,7 +11,9 @@ import express from "express";
 
 import { app } from "./app.js";
 
-dotenv.config(); // Load environment variables from .env file 
+dotenv.config({
+    path : "./.env"
+}); // Load environment variables from .env file 
 
 connectDB() // Since it is a async func it returns a promise so we can use .then() and .catch() to handle the promise. We can also use async/await to handle the promise but we will use .then() and .catch() for now.
 .then(() => {

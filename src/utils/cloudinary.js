@@ -21,7 +21,9 @@ const uploadOnCloudinary = async (localFilePath) => {
             resource_type : "auto" // this option is used to automatically detect the type of the file being uploaded, it can be an image, video or any other type of file, this is useful when we want to upload different types of files without having to specify the resource type for each file    
         })
         // file has been uploaded successfully
-        console.log("File uploaded successfully on cloudinary",response.url);
+        //console.log("File uploaded successfully on cloudinary",response.url);
+        fs.unlinkSync(localFilePath);
+        console.log("Response from Cloudinary:",response)
         return response; // we will return the url of the uploaded file from cloudinary, this url will be stored in our database and used to access the file from cloudinary in our frontend application
     }catch(error){
         fs.unlinkSync(localFilePath); // if there is an error while uploading the file to cloudinary, we will delete the file from our local server using fs.unlinkSync() method, this is useful to free up storage space on our local server and also to prevent any potential security issues that may arise from having unnecessary files on our server
