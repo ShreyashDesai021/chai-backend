@@ -7,6 +7,24 @@ import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 
 
+const generateAccessAndRefreshToken = async(userId) => {
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        user.refreshToken = refreshToken
+        await user.save(validateBeforeSave = false) // we are setting validateBeforeSave to false because we don't want to run the validation again when we are saving the user after generating the refresh token, we just want to save the refresh token in the database without validating the other fields like email, username etc. because they are not being updated here, we are only updating the refresh token field
+
+        return {accessToken, refreshToken}
+
+
+    } catch (error) {
+        throw new ApiError(500,"Error while generating access and refresh token")
+    }
+}
+
+
 const registerUser = asyncHandler(async (req,res) => {
     // get user details from frontend
     // validate user details - e.g not empty
@@ -88,4 +106,66 @@ const registerUser = asyncHandler(async (req,res) => {
 
 })
 
-export {registerUser};
+
+const LoginUser = asyncHandler(async (req,res) => {
+    // req body -> data
+    // username or email
+    // find the user
+    // password check
+    // access and refresh token generation
+    // send cookie 
+
+    const {email,username,password} = req.body
+
+    if(!username || !email){
+        throw new ApiError(400,"Username or email is required")
+    }
+
+    const user = await User.findOne({
+        $or: [{username},{email}] // this means that we will find the user by either username or email, if we find the user by username then we will check the password, if we find the user by email then we will check the password, this is useful because the user can login using either username or email
+    })
+
+    if(!user){
+        throw new ApiError(404,"User not found with this username or email")
+    }
+
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if(!isPasswordValid){
+        throw new ApiError(401,"Invalid password")
+    }
+
+    // difference between User and user here? User is the model which we imported from the user.model.js file, it is used to interact with the database, it has methods like findOne, create, findById etc. user is the instance of the User model which we got after finding the user in the database using the findOne method, it is a document which represents a single user in the database and it has properties like username, email, password etc. and it also has methods like isPasswordCorrect which we defined in the user.model.js file to check if the password is correct or not
+     
+    const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    const options = {
+        httpOnly : true, // this means that the cookie will be accessible only through HTTP protocol and not through JavaScript, this is a security measure to prevent cross-site scripting attacks
+        secure : true // this means that the cookie will be sent only over HTTPS and not over HTTP, this is a security measure
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+.json(
+    new ApiResponse(
+        200,{
+            user : loggedInUser,
+            accessToken,
+            refreshToken
+        },
+        "User Logged In Successfully"
+    )
+)
+})
+
+const logoutUser = asyncHandler(async(req,res) => {
+    // clear the cookie from frontend
+    // clear the refresh token from database
+    
+    })  
+
+export {registerUser, LoginUser};
