@@ -107,7 +107,7 @@ const registerUser = asyncHandler(async (req,res) => {
 })
 
 
-const LoginUser = asyncHandler(async (req,res) => {
+const loginUser = asyncHandler(async (req,res) => {
     // req body -> data
     // username or email
     // find the user
@@ -165,7 +165,7 @@ const LoginUser = asyncHandler(async (req,res) => {
 const logoutUser = asyncHandler(async(req,res) => {
     // clear the cookie from frontend
     // clear the refresh token from database
-    
+
     })  
 
-export {registerUser, LoginUser};
+export {registerUser, loginUser, logoutUser};

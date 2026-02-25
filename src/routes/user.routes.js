@@ -24,6 +24,14 @@ router.route("/register").post(
     ]), // accepts array
     registerUser);
 
+router.route("/login").post(loginUser) 
+
+//secured routes
+
+router.route("/logout").post(verifyJWT,logoutUser)
+
+
+
 export default router;
 
 // Now we have created a router. We will import the controller method and use it in the route. We will also export the router. We will import this router in the main file and use it.
