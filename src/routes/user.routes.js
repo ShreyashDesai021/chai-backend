@@ -6,7 +6,7 @@
 // How to make and export a router in express? // Chatgpt answer this
 
 import { Router } from 'express';
-import { registerUser } from '../controllers/user.controller.js';
+import { loginUser, registerUser } from '../controllers/user.controller.js';
 import { upload } from '../middlewares/multer.middleware.js';
 
 const router = Router();
@@ -28,7 +28,7 @@ router.route("/login").post(loginUser)
 
 //secured routes
 
-router.route("/logout").post(verifyJWT, logoutUser)
+router.route("/logout").post(verifyJWT, logoutUser) // thats why we wrote next() in the verifyJWT middleware, because we want to run the logoutUser controller method only after the verifyJWT middleware has verified the token and added the user to the request object, if we don't write next() in the verifyJWT middleware then the logoutUser controller method will never run because the verifyJWT middleware will not call next() and will not pass the control to the next middleware or controller method in the route, so we need to write next() in the verifyJWT middleware to pass the control to the next middleware or controller method in the route after it has done its job of verifying the token and adding the user to the request object.
 
 
 
