@@ -5,7 +5,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
-
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async(userId) => {
     try {
@@ -194,4 +194,77 @@ const logoutUser = asyncHandler(async(req,res) => {
         )    
     })  
 
-export {registerUser, loginUser, logoutUser, generateAccessAndRefreshToken};
+// what is accesstoken?
+// Access token is a short-lived token that is used to access the protected routes of the application, it is usually valid for 15 minutes to 1 hour,
+// it is stored in the client side (frontend) and is sent in the Authorization header of the request when accessing the protected routes, 
+// it is used to verify the identity of the user and to authorize the user to access the protected resources of the application, 
+// it is generated using the user's information and a secret key and is signed using a hashing algorithm like HMAC SHA256, 
+// it can be verified using the same secret key to ensure that it has not been tampered with and that it is valid
+
+// what is refresh token?
+// Refresh token is a long-lived token that is used to generate a new access token when the access token expires, 
+// it is usually valid for 7 days to 30 days, it is stored in the client side (frontend) and is sent in the Authorization header 
+// of the request when accessing the protected routes, it is used to verify the identity of the user and to authorize 
+// the user to access the protected resources of the application, it is generated using the user's information and a secret key 
+// and is signed using a hashing algorithm like HMAC SHA256, it can be verified using the same secret key to ensure that
+//  it has not been tampered with and that it is valid, it is used to maintain the user's session without requiring them to log in again 
+// when the access token expires, when the access token expires, the frontend can send a request to the backend with the refresh token 
+// to get a new access token without requiring the user to log in again
+
+const refreshAccesToken = asyncHandler(async(req,res) =>{
+    // get the refresh token from the cookie
+    // verify the refresh token
+    // if the refresh token is valid, then generate a new access token and refresh token
+    // save the new refresh token in the database
+    // send the new access token and refresh token to the frontend in cookie and response
+
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken // req.body.refreshToken is used for mobile applications where we cannot store the refresh token in the cookie, so we send the refresh token in the request body and get it from there, for web applications we can store the refresh token in the cookie and get it from there, so we can support both web and mobile applications by checking for the refresh token in both places
+
+
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "unauthorized request")
+    }
+
+    try {
+        const decodedToken = jwt.verify(
+            incomingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        )
+    
+        const user = await User.findById(decodedToken?._id)
+    
+        if (!user) {
+            throw new ApiError(401, "Invalid refresh token")
+        }
+    
+        if (incomingRefreshToken !== user?.refreshToken) {
+            throw new ApiError(401, "Refresh token is expired or used")
+            
+        }
+    
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+    
+        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+    
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", newRefreshToken, options)
+        .json(
+            new ApiResponse(
+                200, 
+                {accessToken, refreshToken: newRefreshToken},
+                "Access token refreshed"
+            )
+        )
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid refresh token")
+    }
+
+
+})
+
+export {registerUser, loginUser, logoutUser, refreshAccesToken};

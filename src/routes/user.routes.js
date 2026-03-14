@@ -10,8 +10,7 @@ import { loginUser, registerUser } from '../controllers/user.controller.js';
 import { upload } from '../middlewares/multer.middleware.js';
 import { verifyJWT } from '../middlewares/auth.middleware.js';
 import { logoutUser } from '../controllers/user.controller.js';
-import { generateAccessAndRefreshToken } from '../controllers/user.controller.js';  
-
+import { refreshAccesToken } from '../controllers/user.controller.js';
 
 const router = Router();
 
@@ -34,7 +33,7 @@ router.route("/login").post(loginUser)
 
 router.route("/logout").post(verifyJWT, logoutUser) // thats why we wrote next() in the verifyJWT middleware, because we want to run the logoutUser controller method only after the verifyJWT middleware has verified the token and added the user to the request object, if we don't write next() in the verifyJWT middleware then the logoutUser controller method will never run because the verifyJWT middleware will not call next() and will not pass the control to the next middleware or controller method in the route, so we need to write next() in the verifyJWT middleware to pass the control to the next middleware or controller method in the route after it has done its job of verifying the token and adding the user to the request object.
 
-
+router.route("/refresh-token").post(refreshAccesToken) // we will use this route to refresh the access token when it expires, we will send the refresh token in the request body and if the refresh token is valid, we will generate a new access token and send it in the response, we will also generate a new refresh token and send it in the response and update the refresh token in the database for that user, this way we can keep the user logged in without asking them to login again when the access token expires, we can simply refresh the access token using the refresh token.
 
 export default router;
 
