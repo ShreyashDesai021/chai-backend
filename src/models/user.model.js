@@ -58,10 +58,10 @@ const userSchema = new Schema(
     }       
 )
 
-userSchema.pre("save",async function (next) { // why is this function not an arrow function ? because we need to use the "this" keyword to access the user document that is being saved, if we use an arrow function, the "this" keyword will refer to the global object and not the user document, so we need to use a regular function to access the user document using the "this" keyword
+userSchema.pre("save",async function () { // why is this function not an arrow function ? because we need to use the "this" keyword to access the user document that is being saved, if we use an arrow function, the "this" keyword will refer to the global object and not the user document, so we need to use a regular function to access the user document using the "this" keyword
                                               // why we use (next) here ? because it is a middleware function and we need to call the next() function to pass the control to the next middleware function in the stack, if we don't call next(), the request will be stuck and will not proceed to the next middleware function or the route handler
 
-    if(!this.isModified("password")) return next(); // this means that if the password field is not modified, then we don't need to hash the password again and we can simply proceed to the next middleware function or the route handler, this is useful when we are updating a user and we don't want to hash the password again if it is not modified
+    if(!this.isModified("password")) return; // this means that if the password field is not modified, then we don't need to hash the password again and we can simply proceed to the next middleware function or the route handler, this is useful when we are updating a user and we don't want to hash the password again if it is not modified
     this.password = await bcrypt.hash(this.password,10)
     // next();
 })

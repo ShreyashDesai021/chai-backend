@@ -20,6 +20,7 @@ const generateAccessAndRefreshToken = async(userId) => {
 
 
     } catch (error) {
+        console.error("TOKEN GENERATION ERROR:", error);
         throw new ApiError(500,"Error while generating access and refresh token")
     }
 }
@@ -117,7 +118,8 @@ const loginUser = asyncHandler(async (req,res) => {
 
     const {email,username,password} = req.body
 
-    if(!username || !email){ // both username and email are required to login
+    if(!username && !email){ // both username and email are required to login
+        throw new ApiError(400,"Username or email is required")
     }
 
     const user = await User.findOne({
@@ -192,4 +194,4 @@ const logoutUser = asyncHandler(async(req,res) => {
         )    
     })  
 
-export {registerUser, loginUser, logoutUser};
+export {registerUser, loginUser, logoutUser, generateAccessAndRefreshToken};
